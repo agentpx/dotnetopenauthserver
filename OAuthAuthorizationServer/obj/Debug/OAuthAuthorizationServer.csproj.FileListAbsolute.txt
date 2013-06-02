@@ -71,3 +71,4 @@ c:\users\jorge\documents\visual studio 2012\Projects\DotNetOpenAuthServer\OAuthA
 c:\users\jorge\documents\visual studio 2012\Projects\DotNetOpenAuthServer\OAuthAuthorizationServer\bin\Mono.Math.xml
 c:\users\jorge\documents\visual studio 2012\Projects\DotNetOpenAuthServer\OAuthAuthorizationServer\obj\Debug\OAuthAuthorizationServer.dll
 c:\users\jorge\documents\visual studio 2012\Projects\DotNetOpenAuthServer\OAuthAuthorizationServer\obj\Debug\OAuthAuthorizationServer.pdb
+C:\Users\Jorge\Documents\Visual Studio 2012\Projects\DotNetOpenAuthServer\OAuthAuthorizationServer\obj\Debug\OAuthAuthorizationServer.csprojResolveAssemblyReference.cache
