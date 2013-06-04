@@ -35,8 +35,9 @@ namespace DNOAServer.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
-            if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+            if (ModelState.IsValid && (model.Email=="user1@alhambra.com" && model.Password=="login123"))
             {
+                FormsAuthentication.SetAuthCookie(model.Email, false);
                 return RedirectToLocal(returnUrl);
             }
 
@@ -57,9 +58,7 @@ namespace DNOAServer.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-       
         
- 
 
         #region Helpers
         private ActionResult RedirectToLocal(string returnUrl)
@@ -73,16 +72,7 @@ namespace DNOAServer.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
-
-        public enum ManageMessageId
-        {
-            ChangePasswordSuccess,
-            SetPasswordSuccess,
-            RemoveLoginSuccess,
-        }
-
-    
-        
+         
         #endregion
     }
 }

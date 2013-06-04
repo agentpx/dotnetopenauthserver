@@ -11,13 +11,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace DNOAServer.Controllers
 {
     public class OAuth2Controller : Controller
     {
-       
-
+        [AllowAnonymous]
         public ActionResult Auth()
         {
             var authSvr = new AuthorizationServer(new AlhambraAuthorizationServerHost());
@@ -28,31 +28,38 @@ namespace DNOAServer.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public ActionResult Auth(LoginModel model)
         {
 
             var authSvrHostImpl = new AlhambraAuthorizationServerHost();
 
-            if (model.UserName == "user1@nature.com" && model.Password == "login123")
+            if ( (ModelState.IsValid) && (model.Email == "user1@alhambra.com" && model.Password == "login123"))
             {
+               // FormsAuthentication.SetAuthCookie(model.Email, false);
                 var request = Session["request"] as EndUserAuthorizationRequest;
                 var authSvr = new AuthorizationServer(authSvrHostImpl);
-                var approval = authSvr.PrepareApproveAuthorizationRequest(request, model.UserName, new string[] { "openid" });
+                var approval = authSvr.PrepareApproveAuthorizationRequest(request, model.Email, new string[] { "openid" });
 
                 return authSvr
                     .Channel
                     .PrepareResponse(approval).AsActionResult();
             }
-            ViewBag.Message = "Wrong username or password!";
 
-            return View();
+            // If we got this far, something failed, redisplay form
+            ModelState.AddModelError("", "The user name or password provided is incorrect.");
+            return View(model);
+
         }
 
+        [AllowAnonymous]
         public ActionResult Token()
         {
             var authSvr = new AuthorizationServer(new AlhambraAuthorizationServerHost());
+            
             var response = authSvr.HandleTokenRequest(Request);
+            
             return response.AsActionResult();
         }
 
