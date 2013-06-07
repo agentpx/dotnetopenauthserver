@@ -24,5 +24,36 @@ namespace DNOAServer
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AuthConfig.RegisterAuth();
         }
+
+        public static List<ClientAuthorization> ClientAuthorizations = new List<ClientAuthorization>();
+
+        public static List<RegisteredUser> RegisteredUsers = new List<RegisteredUser>() { 
+                            new RegisteredUser{ ClientIdentifier="NATURE", Email="user1@alhambra.com", Password="login123"}, 
+                            new RegisteredUser{ ClientIdentifier="NATURE", Email="user2@alhambra.com", Password="login123" } };
+
+     
+        public static RegisteredUser LoggedInUser
+        {
+            get { return RegisteredUsers.SingleOrDefault(user => user.Email == HttpContext.Current.User.Identity.Name); }
+        }
+
     }
+
+    public class RegisteredUser
+    {
+        public string Id { get; set; }
+        public string ClientIdentifier { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class ClientAuthorization
+    {
+        public string User { get; set; }
+        public string Client { get; set; }
+        public HashSet<string> Scope { get; set; }
+        public string Code { get; set; }
+        public DateTime Expires { get; set; }
+    }
+
 }

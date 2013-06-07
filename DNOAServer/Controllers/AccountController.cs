@@ -14,7 +14,6 @@ using DNOAServer.Models;
 namespace DNOAServer.Controllers
 {
     [Authorize]
-    [InitializeSimpleMembership]
     public class AccountController : Controller
     {
         //

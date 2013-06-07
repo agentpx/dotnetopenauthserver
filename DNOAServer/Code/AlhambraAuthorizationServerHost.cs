@@ -34,12 +34,12 @@ namespace DNOAServer.Code
             }
 
             token.User = accessTokenRequestMessage.UserName;
-            token.ExtraData.Add("id_token","thisisthejwt");
+           // token.ExtraData.Add("id_token","thisisthejwt");
 
-            var signCert = LoadCert(Config.STS_CERT);
+            var signCert = LoadCert(Config.ALHAMBRA_AUTHORIZATION);
             token.AccessTokenSigningKey = (RSACryptoServiceProvider)signCert.PrivateKey;
 
-            var encryptCert = LoadCert(Config.SERVICE_CERT);
+            var encryptCert = LoadCert(Config.ALHAMBRA_RESOURCES);
             token.ResourceServerEncryptionKey = (RSACryptoServiceProvider)encryptCert.PublicKey.Key;
 
             var accessTokenResult = new AccessTokenResult(token);

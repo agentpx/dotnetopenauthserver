@@ -1,0 +1,72 @@
+﻿@model DNOAServer.Models.AccountAuthorizeModel 
+
+@{
+    ViewBag.Title = "AuthorizeExternalAccess";
+}
+
+<h1>AuthorizeExternalAccess</h1>
+
+<div>
+    <h2>@Model.ClientApp</h2> 
+    <br />is requesting permission to access the following data:
+    <br />
+    @foreach (string s in Model.Scope)
+    {
+        <h3>@s</h3>
+    }
+    <br />
+
+@using (Html.BeginForm("AuthorizeExternalAccessResponse", "OAuth2"))
+{
+     
+    @Html.Hidden("IsApproved")
+  
+	Html.Hidden("client_id", (string)Model.AuthorizationRequest.ClientIdentifier);
+	Html.Hidden("redirect_uri", Model.AuthorizationRequest.Callback.ToString());
+	Html.Hidden("state", (string) Model.AuthorizationRequest.ClientState);
+	Html.Hidden("scope", (string)  DotNetOpenAuth.OAuth2.OAuthUtilities.JoinScopes(Model.AuthorizationRequest.Scope));
+	Html.Hidden("response_type", Model.AuthorizationRequest.ResponseType == DotNetOpenAuth.OAuth2.Messages.EndUserAuthorizationResponseType.AccessToken ? "token" : "code");
+		
+    
+    <div style="display: none" id="responseButtonsDiv">
+	<div>
+        What do you want to do?
+	</div>	
+        <table>
+            <tr>
+                <td><input type="submit" value="Allow" onclick="document.getElementsByName('IsApproved')[0].value = true; return true;" /></td>
+                <td><input type="submit" value="Reject" onclick="document.getElementsByName('IsApproved')[0].value = false; return true;" /></td>
+            </tr>
+        </table>
+        
+        
+        
+		
+	</div>
+    
+    
+    <div id="javascriptDisabled">
+	<b>Javascript appears to be disabled in your browser. </b>
+    This page requires Javascript to be enabled to better protect your security.
+    </div>
+
+    <script  lang="javascript" type="text/javascript">
+		        //<![CDATA[
+		        // we use HTML to hide the action buttons and Javascript to show them
+		        // to protect against click-jacking in an iframe whose javascript is disabled.
+		        document.getElementById('responseButtonsDiv').style.display = 'block';
+		        document.getElementById('javascriptDisabled').style.display = 'none';
+
+		        // Frame busting code (to protect us from being hosted in an iframe).
+		        // This protects us from click-jacking.
+		        if (document.location !== window.top.location) {
+		            window.top.location = document.location;
+		        }
+		        //]]>
+    </script>
+
+    
+}
+</div>
+
+

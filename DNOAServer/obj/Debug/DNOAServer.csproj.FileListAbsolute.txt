@@ -126,7 +126,6 @@ c:\users\jorge\documents\visual studio 2012\Projects\DNOAServer\DNOAServer\bin\z
 c:\users\jorge\documents\visual studio 2012\Projects\DNOAServer\DNOAServer\bin\zh-Hant\System.Spatial.resources.dll
 c:\users\jorge\documents\visual studio 2012\Projects\DNOAServer\DNOAServer\obj\Debug\DNOAServer.dll
 c:\users\jorge\documents\visual studio 2012\Projects\DNOAServer\DNOAServer\obj\Debug\DNOAServer.pdb
-C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\obj\Debug\DNOAServer.csproj.App.config
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\DNOAServer.dll.config
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\DNOAServer.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\DNOAServer.pdb
@@ -157,6 +156,7 @@ C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Dot
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\EntityFramework.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.Data.Edm.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.Data.OData.dll
+C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.IdentityModel.Tokens.JWT.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.Web.Infrastructure.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.Web.Mvc.FixedDisplayModes.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\Microsoft.Web.WebPages.OAuth.dll
@@ -252,6 +252,7 @@ C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\ko\
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\ru\System.Spatial.resources.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\zh-Hans\System.Spatial.resources.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\bin\zh-Hant\System.Spatial.resources.dll
+C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\obj\Debug\DNOAServer.csproj.App.config
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\obj\Debug\DNOAServer.dll
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\obj\Debug\DNOAServer.pdb
 C:\Users\Jorge.Alvarado\Documents\Github\dotnetopenauthserver\DNOAServer\obj\Debug\DNOAServer.csprojResolveAssemblyReference.cache
