@@ -15,7 +15,7 @@ namespace DNOAServer.Models
         public EndUserAuthorizationRequest AuthorizationRequest { get; set; }
     }
 
-    public class AccountAuthorizeModelV2
+    public class AlhambraOAuth2Authorization
     {
         public string UserId { get; set; }
 

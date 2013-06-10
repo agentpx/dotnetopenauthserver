@@ -29,8 +29,7 @@ namespace DNOAServer.Controllers
     public class OAuth2Controller : Controller
     {
 
-        private const string CLIENT_ADDRESS = "https://localhost:44301";
-        private const string SERVER_ADDRESS = "https://localhost:44300";
+  
 
         AuthorizationServer authorizationServer = new AuthorizationServer(new AlhambraAuthorizationServerHost());
 
@@ -49,7 +48,7 @@ namespace DNOAServer.Controllers
         public ActionResult Auth(LoginModel model)
         {
 
-            if ( (ModelState.IsValid) && (MvcApplication.RegisteredUsers.FirstOrDefault(x=>x.Email==model.Email && x.Password==model.Password) != null))
+            if ( (ModelState.IsValid) && (MvcApplication.registeredUsers.FirstOrDefault(x=>x.Email==model.Email && x.Password==model.Password) != null))
             {
                 
                 FormsAuthentication.SetAuthCookie(model.Email, false);
@@ -78,13 +77,12 @@ namespace DNOAServer.Controllers
                 throw new HttpException((int)HttpStatusCode.BadRequest, "Missing authorization request.");
             }
 
-            var requestingClient = MvcApplication.RegisteredUsers.FirstOrDefault(c => c.Email == User.Identity.Name);
+            var requestingClient = MvcApplication.registeredUsers.FirstOrDefault(c => c.Email == User.Identity.Name);
 
            
           
             var model = new AccountAuthorizeModel
             {
-                ClientApp = requestingClient.ClientIdentifier,
                 Scope = authorizationRequest.Scope,
                 AuthorizationRequest = authorizationRequest,
             };
@@ -112,7 +110,7 @@ namespace DNOAServer.Controllers
 
             if (isApproved)
             {
-                var client = MvcApplication.RegisteredUsers.FirstOrDefault(c => c.ClientIdentifier == authorizationRequest.ClientIdentifier);
+                var client = MvcApplication.registeredUsers.FirstOrDefault(c => c.Email==User.Identity.Name);
 
                 preparedResponse = this.authorizationServer.PrepareApproveAuthorizationRequest(authorizationRequest, User.Identity.Name);
 
@@ -122,7 +120,7 @@ namespace DNOAServer.Controllers
                 string parsedUrl = ExtractUrl(responseBody);
                 string parsedCode = ExtractCodeFromUrl(new Uri(parsedUrl));
 
-                MvcApplication.ClientAuthorizations.Add(new ClientAuthorization { Client = client.ClientIdentifier, Expires = DateTime.Now.AddMinutes(2), Scope = authorizationRequest.Scope, User = client.Email, Code=parsedCode });
+               // MvcApplication.ClientAuthorizations.Add(new ClientAuthorization { Client = client.ClientIdentifier, Expires = DateTime.Now.AddMinutes(2), Scope = authorizationRequest.Scope, User = client.Email, Code=parsedCode });
                   
             }
             else

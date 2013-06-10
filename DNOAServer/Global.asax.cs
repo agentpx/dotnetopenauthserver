@@ -26,22 +26,19 @@ namespace DNOAServer
             AuthConfig.RegisterAuth();
         }
 
-        public static List<ClientAuthorization> ClientAuthorizations = new List<ClientAuthorization>();
+         
 
-        public static List<RegisteredUser> RegisteredUsers = new List<RegisteredUser>() { 
-                            new RegisteredUser{ ClientIdentifier="NATURE", Email="user1@alhambra.com", Password="login123"}, 
-                            new RegisteredUser{ ClientIdentifier="NATURE", Email="user2@alhambra.com", Password="login123" } };
+        public static List<RegisteredUser> registeredUsers = new List<RegisteredUser>() { 
+                            new RegisteredUser{ Id="ALH0001", FirstName="John", LastName="Smith", Profile="Profile of John Smith", Email="user1@alhambra.com", Password="login123"}, 
+                            new RegisteredUser{ Id="ALH0002", FirstName="Jane", LastName="Smith", Profile="Profile of Jane Smith", Email="user2@alhambra.com", Password="login123" }};
+         
+        public static List<AlhambraOAuth2Authorization> registeredAuthorizations = new List<AlhambraOAuth2Authorization>();
 
+        public static List<AlhambraOAuth2Client> registeredClients = new List<AlhambraOAuth2Client>() { new AlhambraOAuth2Client{ Identifier="NATURE", Secret="login123"} };
 
+        public static Dictionary<String, bool> codesGenerated = new Dictionary<string,bool>();
 
-        public static List<AccountAuthorizeModelV2> AccountAuthorizationsV2 = new List<AccountAuthorizeModelV2>();
-
-        public static RegisteredUser LoggedInUser
-        {
-            get { return RegisteredUsers.SingleOrDefault(user => user.Email == HttpContext.Current.User.Identity.Name); }
-        }
-
-        public static List<AlhambraOAuth2Client> RegisteredClients = new List<AlhambraOAuth2Client>() { new AlhambraOAuth2Client{ Identifier="NATURE", Secret="login123"} };
+        public static Dictionary<Guid, Guid> tokensGenerated = new Dictionary<Guid, Guid>();
 
     }
 

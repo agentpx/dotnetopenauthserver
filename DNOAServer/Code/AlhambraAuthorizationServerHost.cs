@@ -67,7 +67,7 @@ namespace DNOAServer.Code
             switch (clientIdentifier)
             {
                 case "NATURE":
-                    var allowedCallback = "https://localhost:44301/OpenIdConnect/AlhambraCallback";
+                    var allowedCallback =  "/OpenIdConnect/AlhambraCallback";
                     return new ClientDescription(
                                                 "secret",
                                                 new Uri(allowedCallback),

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -17,21 +18,36 @@ namespace DNOAServer.Controllers
 {
     public class OpenIdConnectController : Controller
     {
-        private const string CLIENT_ADDRESS = "https://localhost:44301";
-        private const string SERVER_ADDRESS = "https://localhost:44300";
-
-       // AuthorizationServer authorizationServer = new AuthorizationServer(new AlhambraAuthorizationServerHost());
-
+    
         [AllowAnonymous]
         public ActionResult Auth(OpenIdConnectAuthorizationRequest request)
         {
-            var httpreq = Request;
-            //var request = authorizationServer.ReadAuthorizationRequest(Request);
-           Session["AuthorizationRequest"] = request;
 
-           
-           
-            return View();
+            if (request.scope.Contains(OpenIdConnectScopes.OpenId) && !String.IsNullOrEmpty(request.client_id) && request.response_type=="code" && !String.IsNullOrEmpty(request.state) && !String.IsNullOrEmpty(request.redirect_uri) )
+            {
+                if (MvcApplication.registeredClients.Exists(x => x.Identifier == request.client_id))
+                {
+                    Session["AuthorizationRequest"] = request;
+
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction("AuthorizeExternalAccess");
+                    }
+                    else
+                    {
+                        return View();
+                    }
+                }
+                else
+                {
+                    throw new HttpException((int)HttpStatusCode.Unauthorized, "This client id is not recognized");
+                }
+            }
+            else
+            {
+                throw new HttpException((int)HttpStatusCode.BadRequest, "Request does not comply with OpenId Connect protocol");
+            }
+         
         }
 
         [AllowAnonymous]
@@ -39,7 +55,7 @@ namespace DNOAServer.Controllers
         public ActionResult Auth(LoginModel model)
         {
 
-            if ((ModelState.IsValid) && (MvcApplication.RegisteredUsers.FirstOrDefault(x => x.Email == model.Email && x.Password == model.Password) != null))
+            if ((ModelState.IsValid) && (MvcApplication.registeredUsers.FirstOrDefault(x => x.Email == model.Email && x.Password == model.Password) != null))
             {
 
                 FormsAuthentication.SetAuthCookie(model.Email, false);
@@ -54,7 +70,7 @@ namespace DNOAServer.Controllers
         }
 
 
-      //  [Authorize]
+        [Authorize]
         [HttpGet]
         public ActionResult AuthorizeExternalAccess()
         {
@@ -67,28 +83,27 @@ namespace DNOAServer.Controllers
                 throw new HttpException((int)HttpStatusCode.BadRequest, "Missing authorization request.");
             }
 
-            var requestingClient = MvcApplication.RegisteredUsers.FirstOrDefault(c => c.Email == User.Identity.Name);
+            var requestingClient = MvcApplication.registeredUsers.FirstOrDefault(c => c.Email == User.Identity.Name);
 
 
 
-            var model = new AccountAuthorizeModelV2
+            var model = new AlhambraOAuth2Authorization
             {
                 UserId=User.Identity.Name,
-                ClientIdentifier = requestingClient.ClientIdentifier,
                 AuthorizedAt=DateTime.UtcNow,
                 Scope = authorizationRequest.scope,
                 AuthorizationRequest=authorizationRequest,
                 State=authorizationRequest.state
             };
 
-            MvcApplication.AccountAuthorizationsV2.Add(model);
+            MvcApplication.registeredAuthorizations.Add(model);
           
             return View(model);
 
 
         }
 
-     //   [Authorize]
+        [Authorize]
         [HttpPost]
         public ActionResult AuthorizeExternalAccessResponse(bool isApproved)
         {
@@ -99,41 +114,40 @@ namespace DNOAServer.Controllers
             {
                 throw new HttpException((int)HttpStatusCode.BadRequest, "Missing authorization request.");
             }
-
-           // IDirectedProtocolMessage preparedResponse;
-
-           // OutgoingWebResponse outgoingWebResponse;
-
+             
             if (isApproved)
             {
-                var client = MvcApplication.RegisteredUsers.FirstOrDefault(c => c.ClientIdentifier == authorizationRequest.client_id);
+                var client = MvcApplication.registeredUsers.FirstOrDefault(c => c.Email == User.Identity.Name);
 
-                //preparedResponse = this.authorizationServer.PrepareApproveAuthorizationRequest(authorizationRequest, User.Identity.Name);
+                string newCode = GenerateHexEncodedGUI();
+                //register the new code and set the 'used' flag as false
+                MvcApplication.codesGenerated.Add(newCode, false);
 
-                //outgoingWebResponse = this.authorizationServer.Channel.PrepareResponse(preparedResponse);
+                Guid newAccessToken = Guid.NewGuid();
+                Guid newRefreshToken = Guid.NewGuid();
 
-               // string responseBody = outgoingWebResponse.Body;
-               // string parsedUrl = ExtractUrl(responseBody);
-               // string parsedCode = ExtractCodeFromUrl(new Uri(parsedUrl));
-                var model = new AccountAuthorizeModelV2 { 
-                    ClientIdentifier = client.ClientIdentifier, 
-                    AccessToken="ACCESSTOKEN1",
-                    RefreshToken="REFRESHTOKEN1",
+                MvcApplication.tokensGenerated.Add(newAccessToken, newRefreshToken);
+              
+                var model = new AlhambraOAuth2Authorization { 
+                    AccessToken=newAccessToken.ToString(),
+                    RefreshToken=newRefreshToken.ToString(),
                     AuthorizationRequest=authorizationRequest ,
                     ExpiresAt = DateTime.Now.AddMinutes(2), 
                     AuthorizedAt=DateTime.UtcNow,
                     Scope = authorizationRequest.scope, 
                     UserId = client.Email, 
-                    Code = "CODE1", 
+                    Code = newCode, 
                     State = authorizationRequest.state };
 
-               // MvcApplication.AccountAuthorizationsV2.Add(model);
+             
 
-                var account = MvcApplication.AccountAuthorizationsV2.FirstOrDefault(x => x.ClientIdentifier == client.ClientIdentifier && x.UserId == User.Identity.Name);
-
-                account.AccessToken = "ACCESSTOKEN1";
-                account.RefreshToken = "REFRESHTOKEN1";
-                account.Code = "CODE1";
+                var account = MvcApplication.registeredAuthorizations.FirstOrDefault(x =>  x.UserId == User.Identity.Name);
+                //update existent info
+                account.AccessToken = newAccessToken.ToString();
+                account.RefreshToken = newRefreshToken.ToString();
+                account.Code = newCode;
+                
+                
                 account.ExpiresAt= DateTime.Now.AddMinutes(2);
                 account.AuthorizedAt = DateTime.UtcNow;
                 
@@ -145,122 +159,158 @@ namespace DNOAServer.Controllers
             }
             else
             {
-               // preparedResponse = this.authorizationServer.PrepareRejectAuthorizationRequest(authorizationRequest);
+            
                 throw new HttpException((int)HttpStatusCode.Unauthorized, "Missing authorization request.");
             }
 
-           // outgoingWebResponse = this.authorizationServer.Channel.PrepareResponse(preparedResponse);
-
-           // return outgoingWebResponse.AsActionResult();
- 
-
+      
         }
 
 
+        private string GenerateHexEncodedGUI()
+        {
+            Guid newGUID = Guid.NewGuid();
+            StringBuilder buffer = new StringBuilder();
+            foreach (Byte b in newGUID.ToByteArray())
+            {
+                buffer.AppendFormat("{0:X2}", b);
+            }
+            return buffer.ToString();
+        }
 
-      //  [Authorize]
+
+        [AllowAnonymous] //because by now the client should have a valid CODE
         [HttpPost]
-        public ActionResult Token(OpenIdConnectTokenRequest request)
+        public ActionResult Token(OpenIdConnectTokenRequest tokenRequest)
         {
 
-           
-            string issuer = SERVER_ADDRESS;
-            string audience = "NATURE";
-            //By decision, the signature will not be included
-           // byte[] signature = AlhambraJwtTokenManager.GenerateSymmetricKeyForHmacSha256();
-            byte[] signature = null;
-            string subject = User.Identity.Name;
-            DateTime issuedAt = DateTime.UtcNow;
-            DateTime expires = DateTime.UtcNow.AddMinutes(2);
+            if (MvcApplication.codesGenerated.ContainsKey(tokenRequest.code)  && (tokenRequest.grant_type == "authorization_code"))
+            {
+                if (!MvcApplication.codesGenerated[tokenRequest.code])
+                {
+                    //you used it, now you flag it
+                    MvcApplication.codesGenerated[tokenRequest.code] = true;
 
-            JWTSecurityToken jwt = AlhambraJwtTokenManager.GenerateJwtToken(issuer, subject, audience, expires);
+                    string issuer = Config.SERVER_ADDRESS;
+                    string audience = MvcApplication.registeredAuthorizations.SingleOrDefault(x=>x.Code==tokenRequest.code).ClientIdentifier;
+                    //By decision, the signature will not be included
+                    //byte[] signature = AlhambraJwtTokenManager.GenerateSymmetricKeyForHmacSha256();
 
-            string jwtReadyToBeSent = AlhambraJwtTokenManager.EncodeJWT(jwt);
-             
+                    string subject = User.Identity.Name;
+                    DateTime issuedAt = DateTime.UtcNow;
+                    DateTime expires = DateTime.UtcNow.AddMinutes(2);
 
+                    JWTSecurityToken jwt = AlhambraJwtTokenManager.GenerateJwtToken(issuer, subject, audience, expires);
 
-            OpenIdConnectToken token = new OpenIdConnectToken();
-            token.access_token = "ACCESTOKEN1";
-            token.expires_in = "120";
-            token.refresh_token = "REFRESHTOKEN1";
-            token.id_token = jwtReadyToBeSent;
-            token.token_type = "Bearer";
-            string result = JsonConvert.SerializeObject(token);
-           
-            return Content(result, "application/json");
-             
+                    string jwtReadyToBeSent = AlhambraJwtTokenManager.EncodeJWT(jwt);
+
+                    OpenIdConnectToken token = new OpenIdConnectToken();
+
+                    Guid newAccessToken = Guid.NewGuid();
+                    Guid newRefreshToken = Guid.NewGuid();
+
+                    MvcApplication.tokensGenerated.Add(newAccessToken, newRefreshToken);
+
+                    token.access_token = newAccessToken.ToString();
+
+                    token.expires_in = "120";
+                    token.refresh_token = newRefreshToken.ToString();
+                    token.id_token = jwtReadyToBeSent;
+                    token.token_type = "Bearer";
+                    string result = JsonConvert.SerializeObject(token);
+
+                    return Content(result, "application/json");
+                }
+                else
+                {
+                    throw new HttpException((int)HttpStatusCode.Unauthorized, "This code has already been used");
+                }
+            }
+            else
+            {
+                throw new HttpException((int) HttpStatusCode.BadRequest,"The request is not valid");
+            }
         }
 
-
-        public ActionResult UserInfo(string access_token)
+        [AllowAnonymous]
+        public ActionResult UserInfo()
         {
-             
-            var headers = Request.Headers;
+
+            var authorizationRequest = Session["AuthorizationRequest"] as OpenIdConnectAuthorizationRequest;
+
+            AlhambraOAuth2Authorization authorization = null;
+            RegisteredUser registeredUser = null;
+
+            if (HttpContext.Request.Headers["Authorization"].StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string accessToken = ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(HttpContext.Request.Headers["Authorization"].Substring(7)));
+
+
+                if (String.IsNullOrEmpty(accessToken))
+                {
+                    throw new HttpException((int)HttpStatusCode.Unauthorized, "The credentials are invalid");
+                }
+
+                if (!(MvcApplication.registeredAuthorizations.Exists(x => x.AccessToken == accessToken)))
+                {
+                    throw new HttpException((int)HttpStatusCode.Unauthorized, "The access token is invalid");
+                }
+                else
+                {
+                    authorization = MvcApplication.registeredAuthorizations.FirstOrDefault(x => x.AccessToken == accessToken);
+                    registeredUser= MvcApplication.registeredUsers.FirstOrDefault(x=>x.Email==authorization.UserId);
+                }
+                
+            }
+            else
+            {
+                throw new HttpException((int)HttpStatusCode.Unauthorized, "The authorization request only supports Bearer Token Usage");
+            }
+
 
             OAuth2Graph graph = new OAuth2Graph()
             {
-                Id = "ALH0001",
-                FirstName = "John",
-                LastName = "Smith",
-                FullName = "John M. Smith",
-                Profile = "Profile of john smith",
-                Email = "user1@alhambra.com"
+                Id = registeredUser.Id
             };
 
 
-            //string issuer = SERVER_ADDRESS;
-            //string audience = "NATURE";
-            //By decision, the signature will not be included
-            //byte[] signature = AlhambraJwtTokenManager.GenerateSymmetricKeyForHmacSha256();
-            //string subject = "ALH0001";
-            //DateTime issuedAt = DateTime.UtcNow;
-            //DateTime expires = DateTime.UtcNow.AddMinutes(2);
-
-            //JWTSecurityToken jwt = AlhambraJwtTokenManager.GenerateJwtToken(issuer, subject, audience, expires);
-
-            //string jwtReadyToBeSent = AlhambraJwtTokenManager.EncodeJWT(jwt);
-
-            //string jwtDecoded = AlhambraJwtTokenManager.DecodeJWT(jwt);
-
-            // bool isJwtValid = AlhambraJwtTokenManager.IsTokenValid(jwt, audience, issuer);
-
-            //  return Content(jwtDecoded.ToString() + "<br/><br/>" + jwtReadyToBeSent );
-
-
-            //DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(OAuth2Graph));
-            //MemoryStream stream1 = new MemoryStream();
+            //use the scopes
+             if(authorizationRequest.scope.Contains(OpenIdConnectScopes.OpenId)){
+            foreach (string scope in authorizationRequest.scope.Split(' '))
+            {
+                switch (scope)
+                {
+                    case OpenIdConnectScopes.Profile:
+                        graph.FirstName = registeredUser.FirstName;
+                        graph.LastName = registeredUser.LastName;
+                        graph.FullName = registeredUser.FullName;
+                        graph.Profile = registeredUser.Profile;
+                        graph.Email = registeredUser.Email;
+                        break;
+                    case OpenIdConnectScopes.Email:
+                        graph.Email = registeredUser.Email;
+                        break;
+                    case OpenIdConnectScopes.FirstName:
+                        graph.FirstName = registeredUser.FirstName;
+                        break;
+                    case OpenIdConnectScopes.LastName:
+                        graph.FirstName = registeredUser.LastName;
+                        break;
+                }
+            }
+             }
+             else
+             {
+                 throw new HttpException((int)HttpStatusCode.BadRequest, "The request is not valid");
+             }
+             
             string result = JsonConvert.SerializeObject(graph);
-            //serializer.WriteObject(stream1, graph);
+         
 
             return Content(result, "application/json");
 
         }
-
-
-
-
-        private string ExtractUrl(string htmlResponse)
-        {
-
-            int startIndexOfAnchor = htmlResponse.IndexOf(@"href=""");
-            int endIndexOfAnchor = htmlResponse.IndexOf(@""">here");
-            int lengthOfHtml = htmlResponse.Length;
-            int lengthOfAnchor = endIndexOfAnchor - startIndexOfAnchor;
-            string result = htmlResponse.Substring(startIndexOfAnchor + 6, lengthOfAnchor - 6);
-            return result;
-        }
-
-        private string ExtractCodeFromUrl(Uri uri)
-        {
-            string query = uri.Query;
-            int startIndexOfCode = query.IndexOf("code=");
-
-            int startIndexOfState = query.IndexOf("state=");
-            int lengthOfQuery = query.Length;
-            string code = query.Substring(startIndexOfCode + 5, startIndexOfState - 1 - startIndexOfCode - 5);
-
-            return code;
-        }
+         
 
 
     }
