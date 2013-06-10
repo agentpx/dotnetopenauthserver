@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DNOAServer.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -31,29 +32,20 @@ namespace DNOAServer
                             new RegisteredUser{ ClientIdentifier="NATURE", Email="user1@alhambra.com", Password="login123"}, 
                             new RegisteredUser{ ClientIdentifier="NATURE", Email="user2@alhambra.com", Password="login123" } };
 
-     
+
+
+        public static List<AccountAuthorizeModelV2> AccountAuthorizationsV2 = new List<AccountAuthorizeModelV2>();
+
         public static RegisteredUser LoggedInUser
         {
             get { return RegisteredUsers.SingleOrDefault(user => user.Email == HttpContext.Current.User.Identity.Name); }
         }
 
+        public static List<AlhambraOAuth2Client> RegisteredClients = new List<AlhambraOAuth2Client>() { new AlhambraOAuth2Client{ Identifier="NATURE", Secret="login123"} };
+
     }
 
-    public class RegisteredUser
-    {
-        public string Id { get; set; }
-        public string ClientIdentifier { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
 
-    public class ClientAuthorization
-    {
-        public string User { get; set; }
-        public string Client { get; set; }
-        public HashSet<string> Scope { get; set; }
-        public string Code { get; set; }
-        public DateTime Expires { get; set; }
-    }
+
 
 }

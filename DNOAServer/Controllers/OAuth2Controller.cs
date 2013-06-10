@@ -122,7 +122,7 @@ namespace DNOAServer.Controllers
                 string parsedUrl = ExtractUrl(responseBody);
                 string parsedCode = ExtractCodeFromUrl(new Uri(parsedUrl));
 
-                MvcApplication.ClientAuthorizations.Add(new ClientAuthorization { Client = client.ClientIdentifier, Expires = DateTime.Now.AddMinutes(2), Scope = authorizationRequest.Scope, User = client.Email, Code="NOTHING" });
+                MvcApplication.ClientAuthorizations.Add(new ClientAuthorization { Client = client.ClientIdentifier, Expires = DateTime.Now.AddMinutes(2), Scope = authorizationRequest.Scope, User = client.Email, Code=parsedCode });
                   
             }
             else
@@ -148,11 +148,11 @@ namespace DNOAServer.Controllers
             var response = authorizationServer.HandleTokenRequest(Request);
             
             //here you need to save the tokens for the specific user and client before sending it
-
+            
             return response.AsActionResult();
         }
 
- 
+      
         public ActionResult UserInfo()
         {
 
@@ -191,7 +191,7 @@ namespace DNOAServer.Controllers
             string result = JsonConvert.SerializeObject(graph);
             //serializer.WriteObject(stream1, graph);
 
-            return Content(result);
+            return Content(result,"application/json");
 
         }
 
