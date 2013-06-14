@@ -107,7 +107,7 @@ namespace DNOAServer.Controllers
         [HttpPost]
         public ActionResult AuthorizeExternalAccessResponse(bool isApproved)
         {
-
+            
             var authorizationRequest = Session["AuthorizationRequest"] as OpenIdConnectAuthorizationRequest;
 
             if (authorizationRequest == null)

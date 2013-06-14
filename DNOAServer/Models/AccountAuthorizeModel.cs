@@ -36,7 +36,7 @@ namespace DNOAServer.Models
         public string State { get; set; }
 
         public OpenIdConnectAuthorizationRequest AuthorizationRequest { get; set; }
-         
+
     }
 
 }
